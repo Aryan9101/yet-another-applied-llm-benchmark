@@ -4,3 +4,6 @@ myenv
 tmp/*
 
 __pycache__/*
+*.pyc
+
+results/*
