@@ -8,7 +8,7 @@ TAGS = ['generate', 'python', 'file-io']
 question = '''
 Write a Python script that will:
 1. Create a list of exactly 100 different strings, of 50 palindromes and 50 non-palindromes. 
-   IMPORTANT: Use proper english words for all of the strings. Note that strings can also be phrases instead of single words.
+   Don't resort to hardcoding strings.
 2. Save the strings to a csv file named 'palindrome_data.csv' with two columns:
    - 'text': containing one string per line
    - 'is_palindrome': containing a label that is 1 if the string is a palindrome and 0 if not
@@ -61,30 +61,14 @@ def save_csv(csv):
     
     try:
         df = pd.read_csv(StringIO(csv))
-        df.to_csv("palindrome_data.csv", index=False)
+        df.to_csv("palindrome_random_data.csv", index=False)
     except Exception as e:
         return False, f"Error saving csv: {e}"
     
     return True, "CSV saved successfully"
 
-def get_error_message(csv):
-    success, message = check_correctness(csv)
-    if success:
-        return "Your solution is correct!"
-    else:
-        return message
 
 TestPalindrome = question >> LLMRun() >> ExtractCode(keep_main=True) >> (Echo() & (PythonRun() >> (Echo() & (PyFunc(check_correctness) >> Echo()) & PyFunc(save_csv))))
-
-"""
-# Both condition and body nodes receive the same input (the code)
-# First try to get code from LLM, then extract and run it
-TestPalindromeWithFeedback = question >> LLMRun() >> ExtractCode(keep_main=True) >> PythonRun() >> Echo() >> UntilDone(
-    PyFunc(check_correctness),
-    PyFunc(get_error_message) >> LLMRun(f"Your code has issues. Please fix them:\n<A>\n\nEnsure your solution:\nAs a reminder, the prompt was:\n{question}") >> ExtractCode(keep_main=True) >> PythonRun() >> Echo(),
-    max_iters=10
-) >> PyFunc(save_csv)
-"""
 
 if __name__ == "__main__":
     print(run_test(TestPalindrome))

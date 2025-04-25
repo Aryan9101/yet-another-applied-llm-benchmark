@@ -48,20 +48,20 @@ def run_one_test(test, test_llm, eval_llm, vision_eval_llm):
     return False, output
 
 
-def run_all_tests(test_llm, use_cache=True, which_tests=None):
+def run_all_tests(test_llm, use_cache=True, which_tests=None, test_dir=None):
     """
     Run every test case in the benchmark, returning a dictionary of the results
     of the format { "test_name": (success, output) }
     """
     test_llm = llm.LLM(test_llm, use_cache=use_cache)
     sr = {}
-    for f in os.listdir("tests"):
+    for f in os.listdir(test_dir):
         if not f.endswith(".py"):
             continue
         if which_tests is not None and f[:-3] not in which_tests:
             continue
         try:
-            spec = importlib.util.spec_from_file_location(f[:-3], "tests/" + f)
+            spec = importlib.util.spec_from_file_location(f[:-3], test_dir + "/" + f)
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
         except:
@@ -92,18 +92,18 @@ def run_all_tests(test_llm, use_cache=True, which_tests=None):
     return sr
 
 
-def get_tags():
+def get_tags(test_dir):
     """
     Each test has a description and a set of tags. This returns dictionaries
     of the format { "test_name": "description" } and { "test_name": ["tag1", "tag2"] }
     """
     descriptions = {}
     tags = {}
-    for f in os.listdir("tests"):
+    for f in os.listdir(test_dir):
         if not f.endswith(".py"):
             continue
         try:
-            spec = importlib.util.spec_from_file_location(f[:-3], "tests/" + f)
+            spec = importlib.util.spec_from_file_location(f[:-3], test_dir + "/" + f)
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
         except:
@@ -168,6 +168,10 @@ def main():
 
     parser.add_argument(
         "--test", help="Specify a specific test to run.", type=str, action="append"
+    )
+    
+    parser.add_argument(
+        '--test_dir', help='Specify a specific test directory to run.', type=str, default="tests"
     )
 
     parser.add_argument(
@@ -252,9 +256,9 @@ def main():
                 result = subprocess.run(command, capture_output=True, text=True)
                 changed_files = result.stdout.strip().split("\n")
                 changed_files = [
-                    x.split("tests/")[1].split(".py")[0]
+                    x.split(args.test_dir)[1].split(".py")[0]
                     for x in changed_files
-                    if x.startswith("tests/")
+                    if x.startswith(args.test_dir)
                 ]
                 print("Running the following tests:\n  -", "\n  - ".join(changed_files))
                 tests_subset = set(changed_files)
@@ -266,7 +270,7 @@ def main():
             data[model] = {}
             for i in range(args.times):
                 print(f"Running {model}, iteration {i + args.runid}")
-                result = run_all_tests(model, use_cache=False, which_tests=tests_subset)
+                result = run_all_tests(model, use_cache=False, which_tests=tests_subset, test_dir=args.test_dir)
 
                 for k, (v1, v2) in result.items():
                     if k not in data[model]:
@@ -286,7 +290,7 @@ def main():
 
     if args.generate_report:
         tags, descriptions = (
-            get_tags()
+            get_tags(args.test_dir)
         )  # Assuming these functions are defined in your codebase
         create_results_html.generate_report(data, tags, descriptions)
 
