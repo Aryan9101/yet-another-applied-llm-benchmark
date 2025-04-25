@@ -36,7 +36,7 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     rm get-pip.py
 
 # Install required Python packages using pip
-RUN pip install numpy scipy numba Pillow jax jaxlib python-chess torch
+RUN pip install numpy pandas scipy numba Pillow jax jaxlib python-chess torch
 
 # Install Rust
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y

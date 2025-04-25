@@ -74,8 +74,8 @@ def run_all_tests(test_llm, use_cache=True, which_tests=None):
             print(f)
             for t in test_case:
                 print("Run Job", t)
-                tmp = sys.stdout
-                sys.stdout = open(os.devnull, "w")
+                # tmp = sys.stdout
+                # sys.stdout = open(os.devnull, "w")
 
                 test = getattr(module, t)
 
@@ -83,7 +83,7 @@ def run_all_tests(test_llm, use_cache=True, which_tests=None):
                     test, test_llm, llm.eval_llm, llm.vision_eval_llm
                 )
 
-                sys.stdout = tmp
+                # sys.stdout = tmp
                 if ok:
                     print("Test Passes:", t)
                 else:
