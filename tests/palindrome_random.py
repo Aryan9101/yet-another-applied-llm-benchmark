@@ -68,7 +68,7 @@ def save_csv(csv):
     return True, "CSV saved successfully"
 
 
-TestPalindrome = question >> LLMRun() >> ExtractCode(keep_main=True) >> (Echo() & (PythonRun() >> (Echo() & (PyFunc(check_correctness) >> Echo()) & PyFunc(save_csv))))
+TestPalindromeRandom = question >> LLMRun() >> ExtractCode(keep_main=True) >> (Echo() & (PythonRun() >> (Echo() & (PyFunc(check_correctness) >> Echo()) & PyFunc(save_csv))))
 
 if __name__ == "__main__":
-    print(run_test(TestPalindrome))
+    print(run_test(TestPalindromeRandom))

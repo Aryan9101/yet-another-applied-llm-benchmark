@@ -274,7 +274,8 @@ def main():
             for i in range(args.times):
                 print(f"Running {model}, iteration {i+args.runid}")
                 result = run_all_tests(raw_model_name, use_cache=False,
-                                       which_tests=tests_subset)
+                                       which_tests=tests_subset,
+                                       test_dir=args.test_dir)
 
                 for k, (v1, v2) in result.items():
                     if k not in data[model]:
