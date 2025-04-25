@@ -227,6 +227,9 @@ def main():
 
     data = {}
     for model in models_to_run:
+        # Save the original model name and one better suited for the file system/logs
+        raw_model_name = model
+        model = model.replace("/", "-")
         if args.load_saved:
             data[model] = {}
 
@@ -269,8 +272,9 @@ def main():
 
             data[model] = {}
             for i in range(args.times):
-                print(f"Running {model}, iteration {i + args.runid}")
-                result = run_all_tests(model, use_cache=False, which_tests=tests_subset, test_dir=args.test_dir)
+                print(f"Running {model}, iteration {i+args.runid}")
+                result = run_all_tests(raw_model_name, use_cache=False,
+                                       which_tests=tests_subset)
 
                 for k, (v1, v2) in result.items():
                     if k not in data[model]:
