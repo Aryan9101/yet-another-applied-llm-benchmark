@@ -28,7 +28,7 @@ def check_row_count(csv):
     """Check if the csv file has exactly 100 rows"""
     df = pd.read_csv(StringIO(csv))
 
-    if len(df) >= 100:
+    if len(df) < 100:
         return False, f"The csv file must contain at least 100 data points. You have {len(df)} data points."
     return True, ""
 
@@ -36,7 +36,7 @@ def check_unique_questions(csv):
     """Check if all questions are unique"""
     df = pd.read_csv(StringIO(csv))
 
-    if df['text'].nunique() != len(df):
+    if df['question'].nunique() != len(df):
         return False, f"All questions must be unique. {df['question'].nunique() - len(df)} questions are repeated."
     return True, ""
 
@@ -49,7 +49,7 @@ def check_columns(csv):
     return True, ""
 
 def check_answers(csv):
-    """Check if answers are valid (0 or 1)"""
+    """Check if answers are valid integers"""
     df = pd.read_csv(StringIO(csv))
 
     for index, row in df.iterrows():

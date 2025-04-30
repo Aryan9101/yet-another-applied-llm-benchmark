@@ -5,11 +5,15 @@ from main import load_saved_runs
 
 
 def main():
-    models = ["openrouter/meta-llama/llama-3.3-70b-instruct"]
+    # models = ["openrouter/meta-llama/llama-3.3-70b-instruct"]
+    models = [
+        "openrouter/anthropic/claude-3.7-sonnet",
+        "openrouter/meta-llama/llama-3.1-8b-instruct",
+    ]
     data = {}
     for model in models:
         kvs = load_saved_runs(
-            "/home/cadegord/projects/yet-another-applied-llm-benchmark/results/c7b0f45069d6a962aeca48ac35c2799d9edeb5f9",
+            "/home/cadegord/projects/yet-another-applied-llm-benchmark/results/45070ee7e6a3998bc3796c0b03462104a7e05737",
             model.replace("/", "-"),
         )
         data[model] = {}
