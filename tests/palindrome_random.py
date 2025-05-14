@@ -1,74 +1,58 @@
+import pandas as pd
+from io import StringIO
+
 from evaluator import *
 import os
 
-DESCRIPTION = "This test case checks if the model can generate a script that creates two files: one containing strings and another containing string-palindrome label pairs."
+DESCRIPTION = "This test case checks if the model can generate a script that creates a CSV file containing strings with labels indicating whether each string is a palindrome."
 
-TAGS = ['generate', 'python', 'file-io']
+TAGS = ['generate', 'python', 'file-io', 'palindrome']
 
-question = '''
-Write a Python script that will:
-1. Create a list of exactly 100 different strings, of 50 palindromes and 50 non-palindromes. 
-   Don't resort to hardcoding strings.
-2. Save the strings to a csv file named 'palindrome_data.csv' with two columns:
-   - 'text': containing one string per line
-   - 'is_palindrome': containing a label that is 1 if the string is a palindrome and 0 if not
-   
-A string is considered a palindrome if it reads the same forwards and backwards (ignoring case).
-For example: "Madam" is a palindrome (label=1), "hello" is not (label=0).
+question = '''Write a Python script that will:
+1. Create a list of at least 100 different strings.
+   IMPORTANT: Use randomly generated strings of random lengths.
+2. Print to the console a csv string that can be parsed into a pandas dataframe with two columns:
+   - 'string': the word or phrase
+   - 'is_palindrome': a boolean value (True/False) or integer (1/0) indicating if the string is a palindrome
+
+A palindrome reads the same backward as forward, ignoring spaces, punctuation, and case.
+Examples: "racecar" is a palindrome, "A man, a plan, a canal: Panama" is a palindrome, "hello" is not a palindrome.
 
 Make sure the script:
-- Handles both uppercase and lowercase letters
-- Ignores spaces and punctuation when checking for palindromes
 - Ensures that no string is repeated
-- Uses proper file handling with 'with' statements
 - Has clear variable names and comments
 - Sets a random seed to ensure reproducibility
 - Prints the contents of the csv file as a string to the console and ensure that's the only console output
+- Includes a good mix of both palindromes and non-palindromes
 '''
 
-def check_correctness(csv):
-    import pandas as pd
-    from io import StringIO
-    
-    # csv is a string of the csv file contents
+def check_row_count(csv):
+    """Check if the csv file has exactly 100 rows"""
     df = pd.read_csv(StringIO(csv))
-    
-    # Check if the csv file has the correct number of rows
-    if len(df) != 100:
-        return False, f"The csv file must contain exactly 100 data points. You have {len(df)} data points."
-        
-    # Check if the csv file has the correct number of palindromes
-    if df['is_palindrome'].sum() != 50:
-        return False, f"The csv file must contain exactly 50 palindromes and 50 non-palindromes. You have {df['is_palindrome'].sum()} palindromes and {len(df) - df['is_palindrome'].sum()} non-palindromes."
-        
-    # Check if no string is repeated
-    if df['text'].nunique() != 100:
-        return False, f"The csv file must contain exactly 100 unique strings. You have {df['text'].nunique()} unique strings."
-    
-    # Check if the csv file has the correct columns
-    if not all(col in df.columns for col in ['text', 'is_palindrome']):
-        return False, f"The csv file must contain the columns 'text' and 'is_palindrome'. You have the columns {df.columns}."
-    
-    for index, row in df.iterrows():
-        if row['is_palindrome'] not in [0, 1]:
-            return False, f"The is_palindrome column must contain only 0 or 1. You have {row['is_palindrome']} in row {index}."
-    
-    return True, "The csv file is correct"
 
-def save_csv(csv):
-    import pandas as pd
-    from io import StringIO
-    
-    try:
-        df = pd.read_csv(StringIO(csv))
-        df.to_csv("palindrome_random_data.csv", index=False)
-    except Exception as e:
-        return False, f"Error saving csv: {e}"
-    
-    return True, "CSV saved successfully"
+    if len(df) < 100:
+        return False, f"The csv file must contain at least 100 data points. You have {len(df)} data points."
+    return True, ""
 
+def check_unique_strings(csv):
+    """Check if all strings are unique"""
+    df = pd.read_csv(StringIO(csv))
 
-TestPalindromeRandom = question >> LLMRun() >> ExtractCode(keep_main=True) >> (Echo() & (PythonRun() >> (Echo() & (PyFunc(check_correctness) >> Echo()) & PyFunc(save_csv))))
+    if df['string'].nunique() != len(df):
+        return False, f"All strings must be unique. {len(df) - df['string'].nunique()} strings are repeated."
+    return True, ""
+
+def check_columns(csv):
+    """Check if the required columns exist"""
+    df = pd.read_csv(StringIO(csv))
+
+    if not all(col in df.columns for col in ['string', 'is_palindrome']):
+        return False, f"The csv file must contain the columns 'string' and 'is_palindrome'. You have the columns {df.columns}."
+    return True, ""
+
+TestPalindromeRandom = question >> LLMRun() >> ExtractCode(keep_main=True) >> PythonRun() >> (
+    PyFunc(check_row_count) & PyFunc(check_unique_strings) & PyFunc(check_columns)
+)
 
 if __name__ == "__main__":
     print(run_test(TestPalindromeRandom))
